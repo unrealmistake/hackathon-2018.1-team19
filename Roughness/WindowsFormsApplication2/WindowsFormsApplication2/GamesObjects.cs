@@ -21,7 +21,7 @@ namespace Roughness {
         protected int m_center_x; // Центр, каждый раз при изменений х и у пересчитываеться
         protected int m_center_y;
         protected Direction m_direction; // Текущее направление
-        private string m_id;
+        protected string m_id;
         protected GameForm curren_form; // Форма на каторой всё рисуетсья
         public Point m_location;  // Обьект необходимый для отрисовки текущей позиии на форме
 
@@ -44,6 +44,7 @@ namespace Roughness {
             body.Text = "";
             body.TabIndex = 0;
             m_id = id;
+
             if (image_path != null) body.Image = Image.FromFile(image_path);
             else body.BackColor = Color.Bisque;
             body.SizeMode = PictureBoxSizeMode.StretchImage; // Растягивание текстуры
@@ -76,7 +77,7 @@ namespace Roughness {
         }
     }
 
-    public class Player : GameObject, IMortal, IAbleToMove {
+    public class Player : GameObject, IMortal, IAbleToMove, ICanExplode {
         private int move_speed { get; set; } // Скорость передвижения игрока
         private List<Keys> keys_control = new List<Keys>(); // Клавиши управления
         private Dictionary<Keys, bool> keys_now_presed = new Dictionary<Keys, bool>(); // Флаги нажатых в данный момент клавиш управления
@@ -87,6 +88,7 @@ namespace Roughness {
             curren_form.KeyUp += new KeyEventHandler(ActionByKeyUp);
             curren_form.game_timer.Tick += new EventHandler((object sender, EventArgs e) => { Move(m_direction); });
             move_speed = 3;
+
         }
         public void setKeysControl(Keys left, Keys up, Keys right, Keys down, Keys put) {
             keys_control.Clear();
@@ -167,10 +169,18 @@ namespace Roughness {
                     y += move_speed;
             }
         }
-        public bool IsDead() {
-            return false;
+        public bool CheckTemperature() {
+            bool t1 = curren_form.game_map.FireMap[x][y];
+            bool t2 = curren_form.game_map.FireMap[x + m_size_x][y];
+            bool t3 = curren_form.game_map.FireMap[x][y + m_size_y];
+            bool t4 = curren_form.game_map.FireMap[x + m_size_x][y + m_size_y];
+            return t1 || t2 || t3 || t4;
         }
-        public void Die(int die_parametr) { }
+        public bool IsDead { set; get; }
+        public void Die(int die_parametr) {
+            MessageBox.Show($"Player {this.m_id} проиграл");
+            IsDead = true;
+        }
 
     }
     public class Wall : GameObject, IIsBarrier {
@@ -187,15 +197,13 @@ namespace Roughness {
         }
     }
 
-    public class Bomb : GameObject, IIsBarrier {
+    public class Bomb : GameObject, IIsBarrier, ICanExplode {
         int m_timer_fuse;   // Счётчик времени до взрыва
-        int m_tmp_time;     // Засекает текущую секунду (для отсчёта)
         int m_explosion_radius; // Радиус взрыва
         public Bomb(GameForm cf, int x, int y, int time_before_explosion, int explosion_radius) : base(cf, "b", x, y, 40, 40, @"..\..\GameRes\Image3.png") {
             setCollision(true);
             m_explosion_radius = explosion_radius;
             m_timer_fuse = time_before_explosion;
-            m_tmp_time = DateTime.Now.Second;
         }
 
         public void setCollision(bool collision) {
@@ -208,38 +216,49 @@ namespace Roughness {
         }
 
         public bool CheckTimer() { // 
-            if (m_tmp_time != DateTime.Now.Second) {
-                m_tmp_time = DateTime.Now.Second;
-                m_timer_fuse--;
-                if (m_timer_fuse <= 0) return true;
-            }
+            if (CheckTemperature()) return true; //Если высокая температура то взрываем заранее
+            m_timer_fuse--;
+            if (m_timer_fuse <= 0) return true;
             return false;
         }
-
+        public bool CheckTemperature() {
+            bool t1 = curren_form.game_map.FireMap[x][y];
+            bool t2 = curren_form.game_map.FireMap[x + m_size_x][y];
+            bool t3 = curren_form.game_map.FireMap[x][y + m_size_y];
+            bool t4 = curren_form.game_map.FireMap[x + m_size_x][y + m_size_y];
+            return t1 || t2 || t3 || t4;
+        }
         public void Explosion() {
             setCollision(false);
             this.body.Hide();
-            curren_form.game_map.fires.Add(new Fire(curren_form, x, y, Direction.nope, m_explosion_radius));
+            curren_form.game_map.fires.Add(new Fire(curren_form, x, y, Direction.nope, m_explosion_radius, 50, @"..\..\GameRes\Image4.png"));
         }
-
     }
 
     public class Fire : GameObject { // Если direction nope то объект порождает 4 новых c power-1 во всех направлениях, иначе только в своём с power-1 
         int m_timer;        // Счётчик времени
-        int m_tmp_time;     // Засекает текущую секунду (для отсчёта)
 
-        public Fire(GameForm cf, int x, int y, Direction direction, int power) : base(cf, "f", x, y, 40, 40, @"..\..\GameRes\Image4.png") {
-            m_timer = 1; // 2 итерации анимации
-            m_tmp_time = DateTime.Now.Second;
+        public Fire(GameForm cf, int x, int y, Direction direction, int power, int time, string image_path) : base(cf, "f", x, y, 50, 50, image_path) {
+            m_timer = time; // 2 итерации анимации
             m_direction = direction;
             setFieldFire(true);
+            if (power > 1) {
+                if (direction == Direction.nope) {
+                    curren_form.game_map.fires.Add(new Fire(cf, x - 50, y, Direction.left, power - 1, time, @"..\..\GameRes\Image5.png"));
+                    curren_form.game_map.fires.Add(new Fire(cf, x, y - 50, Direction.up, power - 1, time, @"..\..\GameRes\Image6.png"));
+                    curren_form.game_map.fires.Add(new Fire(cf, x + 50, y, Direction.right, power - 1, time, @"..\..\GameRes\Image5.png"));
+                    curren_form.game_map.fires.Add(new Fire(cf, x, y + 50, Direction.down, power - 1, time, @"..\..\GameRes\Image6.png"));
+                }
+                if (direction == Direction.left) curren_form.game_map.fires.Add(new Fire(cf, x - 50, y, Direction.left, power - 1, time, @"..\..\GameRes\Image5.png"));
+                if (direction == Direction.up) curren_form.game_map.fires.Add(new Fire(cf, x, y - 50, Direction.up, power - 1, time, @"..\..\GameRes\Image6.png"));
+                if (direction == Direction.right) curren_form.game_map.fires.Add(new Fire(cf, x + 50, y, Direction.right, power - 1, time, @"..\..\GameRes\Image5.png"));
+                if (direction == Direction.down) curren_form.game_map.fires.Add(new Fire(cf, x, y + 50, Direction.down, power - 1, time, @"..\..\GameRes\Image6.png"));
+            }
+
         }
         public bool CheckTimer() { // 
-            if (m_tmp_time != DateTime.Now.Second) {
-                m_tmp_time = DateTime.Now.Second;
-                m_timer--;
-                if (m_timer <= 0) return true;
-            }
+            m_timer--;
+            if (m_timer <= 0) return true;
             return false;
         }
         public void RemoveFire() {
@@ -255,4 +274,6 @@ namespace Roughness {
         }
 
     }
+
+
 }

@@ -8,10 +8,12 @@ namespace Roughness {
     public enum Direction { nope = 0, left, up, right, down }
 
     interface IMortal {
-        bool IsDead();
+        bool IsDead { set; get; }
         void Die(int die_parametr);
     }
-
+    interface ICanExplode {
+        bool CheckTemperature();
+    }
     interface IAbleToMove {
         void Move(Direction direction);
     }
