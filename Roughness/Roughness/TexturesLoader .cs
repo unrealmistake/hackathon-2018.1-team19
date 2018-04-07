@@ -24,8 +24,8 @@ namespace Roughness {
             GameTextures.Add("Image7", LoadBitmapFromFile(renderTarget, @"..\..\GameRes\Image7.png"));
             GameTextures.Add("Image8", LoadBitmapFromFile(renderTarget, @"..\..\GameRes\Image8.png"));
             GameTextures.Add("Image9", LoadBitmapFromFile(renderTarget, @"..\..\GameRes\Image9.png"));
-            GameTextures.Add("Image10", LoadBitmapFromFile(renderTarget, @"..\..\GameRes\Image10.png"));
-            GameTextures.Add("Image11", LoadBitmapFromFile(renderTarget, @"..\..\GameRes\Image11.png"));
+            //GameTextures.Add("Image10", LoadBitmapFromFile(renderTarget, @"..\..\GameRes\Image10.png"));
+            //GameTextures.Add("Image11", LoadBitmapFromFile(renderTarget, @"..\..\GameRes\Image11.png"));
             GameTextures.Add("Image12", LoadBitmapFromFile(renderTarget, @"..\..\GameRes\Image12.png"));
             GameTextures.Add("Image13", LoadBitmapFromFile(renderTarget, @"..\..\GameRes\Image13.png"));
             GameTextures.Add("Image15", LoadBitmapFromFile(renderTarget, @"..\..\GameRes\Image15.png"));

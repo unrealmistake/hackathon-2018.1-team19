@@ -1,5 +1,4 @@
 ﻿namespace Roughness {
-	
     partial class FormSettings {
         /// <summary>
         /// Required designer variable.

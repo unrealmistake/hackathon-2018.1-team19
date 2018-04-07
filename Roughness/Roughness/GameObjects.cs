@@ -379,6 +379,12 @@ namespace Roughness {
             setBombsField(false);
             this.body.Hide();
             curren_map.fires.Add(new Fire(curren_map, x - 5, y - 5, Direction.nope, m_explosion_radius, 50, @"Image4"));
+            // Проигрываем звук взрыва
+            AudioEngine ae = new AudioEngine();
+            Thread MusicThread = new Thread(new ParameterizedThreadStart(ae.PlaySound));
+            MusicThread.IsBackground = true;
+            MusicThread.Start("explosion");
+            // Создаём событие
             EExplosion();
         }
     }
@@ -449,6 +455,12 @@ namespace Roughness {
             setItemsField(true);
         }
         public Bonuses PickUp() {
+            // Проигрываем звук поднятия предмета
+            AudioEngine ae = new AudioEngine();
+            Thread MusicThread = new Thread(new ParameterizedThreadStart(ae.PlaySound));
+            MusicThread.IsBackground = true;
+            MusicThread.Start("pickup");
+
             body.Hide();
             setItemsField(false);
             curren_map.bounty_items.Remove(this);

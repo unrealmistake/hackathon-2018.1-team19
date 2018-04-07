@@ -8,20 +8,21 @@ using SharpDX.Direct2D1;
 using SharpDX.Windows;
 using Timer = System.Windows.Forms.Timer;
 namespace Roughness {
-
+    // Экземпляр игровой карты, содержит в себе все необходимые ресурсы для отыгрыша одной игровой сессии(от старта до первой смерти игрока)
     public class GameMap {
         public int X { get; set; }
         public int Y { get; set; }
-        public RenderForm mainForm;
-        public RenderTarget renderTarget;
-        public List<RenderingUnit> RenderingUnitsList;
-
-        public Timer game_timer;
+        public RenderForm mainForm;  // Экземпляр формы (Direct2d) на которой идёт отрисовка
+        public RenderTarget renderTarget; // RenderTarget 
+        public List<RenderingUnit> RenderingUnitsList; // Список объёктов для отрисови на игровом поле
+        public Timer game_timer; // Главный таймер игры
+        // Списки игровых объектов
         public List<Bomb> bombs = new List<Bomb>();
         public List<Fire> fires = new List<Fire>();
         public List<Wall> walls = new List<Wall>();
         public List<BrickWall> brick_walls = new List<BrickWall>();
         public List<BountyItem> bounty_items = new List<BountyItem>();
+        // Битовые карты
         public bool[][] CollisionsMap; //Карта коллизий
         public bool[][] FireMap;
         public bool[][] ItemsMap;

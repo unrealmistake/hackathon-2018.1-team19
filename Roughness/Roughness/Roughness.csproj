@@ -60,6 +60,9 @@
     <Reference Include="SharpDX.RawInput">
       <HintPath>..\..\..\..\Мои примеры C#\DirectX 11 init\ConsoleApplication1\ConsoleApplication1\bin\Desktop\SharpDX.RawInput.dll</HintPath>
     </Reference>
+    <Reference Include="SharpDX.XAudio2">
+      <HintPath>..\..\..\..\Мои примеры C#\DirectX 11 init\ConsoleApplication1\ConsoleApplication1\bin\Desktop\SharpDX.XAudio2.dll</HintPath>
+    </Reference>
     <Reference Include="SharpDX.XInput">
       <HintPath>..\..\..\..\Мои примеры C#\DirectX 11 init\ConsoleApplication1\ConsoleApplication1\bin\Desktop\SharpDX.XInput.dll</HintPath>
     </Reference>
@@ -76,6 +79,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AudioEngine.cs" />
     <Compile Include="GameSettings.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>

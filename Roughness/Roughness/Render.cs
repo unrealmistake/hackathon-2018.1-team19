@@ -27,9 +27,7 @@ namespace Roughness {
         private static WindowRenderTarget renderTarget;
         //Various brushes for our example
         private static SolidColorBrush backgroundBrush;
-        private static SolidColorBrush defaultBrush;
-        private static SolidColorBrush greenBrush;
-        private static SolidColorBrush redBrush;
+
 
         List<RenderingUnit> RenderingUnitsList;
         //This one is only a measured region
@@ -73,9 +71,6 @@ namespace Roughness {
 
         private static void CreateResources() {
             if (renderTarget != null) { renderTarget.Dispose(); }
-            if (defaultBrush != null) { defaultBrush.Dispose(); }
-            if (greenBrush != null) { greenBrush.Dispose(); }
-            if (redBrush != null) { redBrush.Dispose(); }
             if (backgroundBrush != null) { backgroundBrush.Dispose(); }
 
             HwndRenderTargetProperties wtp = new HwndRenderTargetProperties();
@@ -84,9 +79,6 @@ namespace Roughness {
             wtp.PresentOptions = PresentOptions.Immediately;
             renderTarget = new WindowRenderTarget(d2dFactory, new RenderTargetProperties(), wtp);
 
-            defaultBrush = new SolidColorBrush(renderTarget, Color.White);
-            greenBrush = new SolidColorBrush(renderTarget, Color.Green);
-            redBrush = new SolidColorBrush(renderTarget, Color.Red);
             backgroundBrush = new SolidColorBrush(renderTarget, new Color4(0.3f, 0.3f, 0.3f, 0.5f));
         }
     }
