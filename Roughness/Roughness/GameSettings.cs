@@ -8,7 +8,6 @@ using SharpDX;
 using SharpDX.DirectInput;
 
 namespace Roughness {
-
     static class GameSettings {
         static public int sound_volume;
         static public List<PlayersSettings> playersSettings = new List<PlayersSettings>();
@@ -27,7 +26,7 @@ namespace Roughness {
             Joystick joystick;
             foreach (var deviceInstance in directInput.GetDevices(DeviceType.Gamepad, DeviceEnumerationFlags.AllDevices)) {
                 joystickGuid = deviceInstance.InstanceGuid;
-                MessageBox.Show("Внимание, у нас тут неожиданно появился геймпад -_-, срочно пишите https://vk.com/id12488633");
+                MessageBox.Show("Внимание! У нас тут неожиданно появился геймпад О_О. Срочно пиши https://vk.com/id12488633 с фотографией того что ты подключил");
             }
             foreach (var deviceInstance in directInput.GetDevices(DeviceType.Joystick, DeviceEnumerationFlags.AllDevices)) {
                 joystickGuid = deviceInstance.InstanceGuid;

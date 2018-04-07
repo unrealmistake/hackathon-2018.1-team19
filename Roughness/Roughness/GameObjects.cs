@@ -7,6 +7,7 @@ using System.Threading;
 using System.Windows.Forms;
 
 namespace Roughness {
+
     public abstract class GameObject {
         protected const int COLLISIONS_COEFFICIENT = 3;
         public RenderingUnit body; // Тело отрисовки
@@ -21,9 +22,9 @@ namespace Roughness {
         protected GameMap curren_map; // Форма на каторой всё рисуетсья
 
         protected GameObject(GameMap cm, int id, int x, int y, int x_size, int y_size) : this(cm, id, x, y, x_size, y_size, null) { }
-        public GameObject(GameMap cm, int id, int x, int y, int x_size, int y_size, string image_path) {
+        public GameObject(GameMap cm, int id, int x, int y, int x_size, int y_size, string textures_name) {
             curren_map = cm;
-            body = new RenderingUnit(x, y, x_size, y_size, cm.renderTarget, image_path);
+            body = new RenderingUnit(x, y, x_size, y_size, cm.renderTarget, textures_name);
             this.x = x;
             this.y = y;
             m_size_x = x_size;
@@ -79,9 +80,9 @@ namespace Roughness {
         private int bombs_power;
         private int number_of_bombs;
         private PlayersSettings players_setting;
-        public Thread gamepad_thread;
+        public Thread gamepad_thread; // Поток в котором будет запущен слушатель геймпада
 
-        public Player(GameMap cm, int id, int x, int y, int x_size, int y_size, string image_path) : base(cm, id, x, y, x_size, y_size, image_path) {
+        public Player(GameMap cm, int id, int x, int y, int x_size, int y_size, string textures_name) : base(cm, id, x, y, x_size, y_size, textures_name) {
             curren_map.game_timer.Tick += new EventHandler((object sender, EventArgs e) => { Move(m_direction); });
             move_speed = 3;
             bombs_power = 2;
@@ -291,7 +292,7 @@ namespace Roughness {
 
     }
     public class Wall : GameObject, IIsBarrier {
-        public Wall(GameMap cm, int id, int x, int y, int x_size, int y_size, string image_path) : base(cm, id, x, y, x_size, y_size, image_path) {
+        public Wall(GameMap cm, int id, int x, int y, int x_size, int y_size, string textures_name) : base(cm, id, x, y, x_size, y_size, textures_name) {
             setCollision(true);
         }
 
@@ -307,7 +308,7 @@ namespace Roughness {
     public class BrickWall : Wall, IIsBarrier, ICanExplode {
         Bonuses m_bonus;
         protected Random obj_random;
-        public BrickWall(GameMap cm, int id, int x, int y, int x_size, int y_size, string image_path) : base(cm, id, x, y, x_size, y_size, image_path) {
+        public BrickWall(GameMap cm, int id, int x, int y, int x_size, int y_size, string textures_name) : base(cm, id, x, y, x_size, y_size, textures_name) {
             const int HOW_OFTEN_DROPS = 4; //Чем меньше тем меньше выпадает
             obj_random = new Random(x + y);
             m_bonus = Bonuses.nope;
@@ -323,8 +324,8 @@ namespace Roughness {
             return t1 || t2 || t3 || t4;
         }
         public void Destroy() {
-            if (m_bonus == Bonuses.power) curren_map.bounty_items.Add(new BountyItem(curren_map, x, y, m_bonus, @"..\..\GameRes\Image10.png"));
-            if (m_bonus == Bonuses.bomb) curren_map.bounty_items.Add(new BountyItem(curren_map, x, y, m_bonus, @"..\..\GameRes\Image11.png"));
+            if (m_bonus == Bonuses.power) curren_map.bounty_items.Add(new BountyItem(curren_map, x, y, m_bonus, @"Image15"));
+            if (m_bonus == Bonuses.bomb) curren_map.bounty_items.Add(new BountyItem(curren_map, x, y, m_bonus, @"Image16"));
 
             setCollision(false);
             this.body.Hide();
@@ -336,7 +337,7 @@ namespace Roughness {
         int m_explosion_radius; // Радиус взрыва
         public delegate void emptyFunction();
         public event emptyFunction EExplosion;
-        public Bomb(GameMap cm, int x, int y, int time_before_explosion, int explosion_radius) : base(cm, 0, x + 5, y + 5, 40, 40, @"..\..\GameRes\Image9.png") {
+        public Bomb(GameMap cm, int x, int y, int time_before_explosion, int explosion_radius) : base(cm, 0, x + 5, y + 5, 40, 40, @"Image9") {
             setCollision(true);
             setBombsField(true);
             m_explosion_radius = explosion_radius;
@@ -377,7 +378,7 @@ namespace Roughness {
             setCollision(false);
             setBombsField(false);
             this.body.Hide();
-            curren_map.fires.Add(new Fire(curren_map, x - 5, y - 5, Direction.nope, m_explosion_radius, 50, @"..\..\GameRes\Image4.png"));
+            curren_map.fires.Add(new Fire(curren_map, x - 5, y - 5, Direction.nope, m_explosion_radius, 50, @"Image4"));
             EExplosion();
         }
     }
@@ -385,7 +386,7 @@ namespace Roughness {
     public class Fire : GameObject { // Если direction nope то объект порождает 4 новых c power-1 во всех направлениях, иначе только в своём с power-1 
         int m_timer;        // Счётчик времени
 
-        public Fire(GameMap cm, int cx, int cy, Direction direction, int power, int time, string image_path) : base(cm, 0, cx, cy, 50, 50, image_path) {
+        public Fire(GameMap cm, int cx, int cy, Direction direction, int power, int time, string textures_name) : base(cm, 0, cx, cy, 50, 50, textures_name) {
             m_timer = time;
             m_direction = direction;
             //setFieldFire(true);
@@ -403,15 +404,15 @@ namespace Roughness {
             }
             if (power > 1) {
                 if (direction == Direction.nope) {
-                    curren_map.fires.Add(new Fire(cm, x - 50, y, Direction.left, power - 1, time, @"..\..\GameRes\Image5.png"));
-                    curren_map.fires.Add(new Fire(cm, x, y - 50, Direction.up, power - 1, time, @"..\..\GameRes\Image6.png"));
-                    curren_map.fires.Add(new Fire(cm, x + 50, y, Direction.right, power - 1, time, @"..\..\GameRes\Image5.png"));
-                    curren_map.fires.Add(new Fire(cm, x, y + 50, Direction.down, power - 1, time, @"..\..\GameRes\Image6.png"));
+                    curren_map.fires.Add(new Fire(cm, x - 50, y, Direction.left, power - 1, time, @"Image5"));
+                    curren_map.fires.Add(new Fire(cm, x, y - 50, Direction.up, power - 1, time, @"Image6"));
+                    curren_map.fires.Add(new Fire(cm, x + 50, y, Direction.right, power - 1, time, @"Image5"));
+                    curren_map.fires.Add(new Fire(cm, x, y + 50, Direction.down, power - 1, time, @"Image6"));
                 }
-                if (direction == Direction.left) curren_map.fires.Add(new Fire(cm, x - 50, y, Direction.left, power - 1, time, @"..\..\GameRes\Image5.png"));
-                if (direction == Direction.up) curren_map.fires.Add(new Fire(cm, x, y - 50, Direction.up, power - 1, time, @"..\..\GameRes\Image6.png"));
-                if (direction == Direction.right) curren_map.fires.Add(new Fire(cm, x + 50, y, Direction.right, power - 1, time, @"..\..\GameRes\Image5.png"));
-                if (direction == Direction.down) curren_map.fires.Add(new Fire(cm, x, y + 50, Direction.down, power - 1, time, @"..\..\GameRes\Image6.png"));
+                if (direction == Direction.left) curren_map.fires.Add(new Fire(cm, x - 50, y, Direction.left, power - 1, time, @"Image5"));
+                if (direction == Direction.up) curren_map.fires.Add(new Fire(cm, x, y - 50, Direction.up, power - 1, time, @"Image6"));
+                if (direction == Direction.right) curren_map.fires.Add(new Fire(cm, x + 50, y, Direction.right, power - 1, time, @"Image5"));
+                if (direction == Direction.down) curren_map.fires.Add(new Fire(cm, x, y + 50, Direction.down, power - 1, time, @"Image6"));
             }
 
         }
@@ -443,7 +444,7 @@ namespace Roughness {
 
     public class BountyItem : GameObject {
         Bonuses m_bonus;
-        public BountyItem(GameMap cm, int start_x, int start_y, Bonuses bonus, string image_path) : base(cm, 0, start_x, start_y, 50, 50, image_path) {
+        public BountyItem(GameMap cm, int start_x, int start_y, Bonuses bonus, string textures_name) : base(cm, 0, start_x, start_y, 50, 50, textures_name) {
             m_bonus = bonus;
             setItemsField(true);
         }

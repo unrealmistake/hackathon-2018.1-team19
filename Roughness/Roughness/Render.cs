@@ -23,6 +23,7 @@ namespace Roughness {
         private static D2DFactory d2dFactory;
         private static DWriteFactory dwFactory;
         private static RenderForm mainForm;
+
         private static WindowRenderTarget renderTarget;
         //Various brushes for our example
         private static SolidColorBrush backgroundBrush;
@@ -63,8 +64,9 @@ namespace Roughness {
 
         }
         public void CreateAndRunGame() {
-            GameMap game_map = new GameMap(650, 550, mainForm, renderTarget, RenderingUnitsList);
-            Game.StartGame(game_map);
+            TexturesLoader.LoadTextures(renderTarget); // Загружаем текстуры 
+            GameMap game_map = new GameMap(650, 550, mainForm, renderTarget, RenderingUnitsList); // Создаём карту
+            Game.StartGame(game_map); // Запускаем логику игры
             mainForm.Select();
         }
         
@@ -111,49 +113,17 @@ namespace Roughness {
         public RectangleF Body;
         public Bitmap Texture;
         public RenderingUnit() { }
-        public RenderingUnit(float x, float y, float size_x, float size_y, RenderTarget renderTarget, string textures_file_name) {
+        public RenderingUnit(float x, float y, float size_x, float size_y, RenderTarget renderTarget, string textures_name) {
             X = x;
             Y = y;
             SizeX = size_x;
             SizeY = size_y;
             isVisible = true;
             Body = new RectangleF(X, Y, SizeX, SizeY);
-            Texture = LoadBitmapFromFile(renderTarget, textures_file_name);
+            Texture = TexturesLoader.GameTextures[textures_name];
         }
         public void Hide() {
             isVisible = false;
-        }
-        private Bitmap LoadBitmapFromFile(RenderTarget renderTarget, string file) {  // Собсвенная реализация загрузчика и конвертации 
-            // Loads from file using System.Drawing.Image
-            using (var bitmap = (System.Drawing.Bitmap)System.Drawing.Image.FromFile(file)) {
-                var sourceArea = new System.Drawing.Rectangle(0, 0, bitmap.Width, bitmap.Height);
-                var bitmapProperties = new BitmapProperties(new PixelFormat(Format.R8G8B8A8_UNorm, AlphaMode.Premultiplied));
-                var size = new Size2(bitmap.Width, bitmap.Height);
-
-                // Transform pixels from BGRA to RGBA
-                int stride = bitmap.Width * sizeof(int);
-                using (var tempStream = new DataStream(bitmap.Height * stride, true, true)) {
-                    // Lock System.Drawing.Bitmap
-                    var bitmapData = bitmap.LockBits(sourceArea, ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppPArgb);
-
-                    // Convert all pixels 
-                    for (int y = 0; y < bitmap.Height; y++) {
-                        int offset = bitmapData.Stride * y;
-                        for (int x = 0; x < bitmap.Width; x++) {
-                            // Not optimized 
-                            byte B = Marshal.ReadByte(bitmapData.Scan0, offset++);
-                            byte G = Marshal.ReadByte(bitmapData.Scan0, offset++);
-                            byte R = Marshal.ReadByte(bitmapData.Scan0, offset++);
-                            byte A = Marshal.ReadByte(bitmapData.Scan0, offset++);
-                            int rgba = R | (G << 8) | (B << 16) | (A << 24);
-                            tempStream.Write(rgba);
-                        }
-                    }
-                    bitmap.UnlockBits(bitmapData);
-                    tempStream.Position = 0;
-                    return new Bitmap(renderTarget, size, tempStream, stride, bitmapProperties);
-                }
-            }
         }
     }
 }
