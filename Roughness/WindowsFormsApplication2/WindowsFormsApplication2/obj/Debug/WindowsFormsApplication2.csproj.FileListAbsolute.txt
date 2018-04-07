@@ -1,0 +1,9 @@
+C:\Git\hackathon-2018.1-team19\Roughness\Roughness\WindowsFormsApplication2\WindowsFormsApplication2\bin\Debug\WindowsFormsApplication2.exe.config
+C:\Git\hackathon-2018.1-team19\Roughness\Roughness\WindowsFormsApplication2\WindowsFormsApplication2\bin\Debug\WindowsFormsApplication2.exe
+C:\Git\hackathon-2018.1-team19\Roughness\Roughness\WindowsFormsApplication2\WindowsFormsApplication2\bin\Debug\WindowsFormsApplication2.pdb
+C:\Git\hackathon-2018.1-team19\Roughness\Roughness\WindowsFormsApplication2\WindowsFormsApplication2\obj\Debug\WindowsFormsApplication2.csprojResolveAssemblyReference.cache
+C:\Git\hackathon-2018.1-team19\Roughness\Roughness\WindowsFormsApplication2\WindowsFormsApplication2\obj\Debug\WindowsFormsApplication2.Properties.Resources.resources
+C:\Git\hackathon-2018.1-team19\Roughness\Roughness\WindowsFormsApplication2\WindowsFormsApplication2\obj\Debug\WindowsFormsApplication2.csproj.GenerateResource.cache
+C:\Git\hackathon-2018.1-team19\Roughness\Roughness\WindowsFormsApplication2\WindowsFormsApplication2\obj\Debug\WindowsFormsApplication2.csproj.CoreCompileInputs.cache
+C:\Git\hackathon-2018.1-team19\Roughness\Roughness\WindowsFormsApplication2\WindowsFormsApplication2\obj\Debug\WindowsFormsApplication2.exe
+C:\Git\hackathon-2018.1-team19\Roughness\Roughness\WindowsFormsApplication2\WindowsFormsApplication2\obj\Debug\WindowsFormsApplication2.pdb
