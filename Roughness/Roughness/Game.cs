@@ -57,7 +57,7 @@ namespace Roughness {
 
             curren_map.game_timer.Tick += new EventHandler((object sender, EventArgs e) => { GameTick(); });
 
-            player_one = new Player(curren_map, 1, 1, 1, 50, 50, @"Image2"); // TODO Перед сборпкой обязательно указать новые пути
+            player_one = new Player(curren_map, 1, 1, 1, 50, 50, @"player1", true ); // TODO Перед сборпкой обязательно указать новые пути
             player_one.setKeysControl(Keys.Left, Keys.Up, Keys.Right, Keys.Down, Keys.Space);
             player_one.putBomb += ((int x, int y, int bombs_power) => {
                 Bomb bomb = new Bomb(curren_map, x, y, 150, bombs_power);
@@ -65,7 +65,7 @@ namespace Roughness {
                 curren_map.bombs.Add(bomb);
             });
 
-            player_two = new Player(curren_map, 2, 600, 500, 50, 50, @"Image3"); // TODO Перед сборпкой обязательно указать новые пути
+            player_two = new Player(curren_map, 2, 600, 500, 50, 50, @"player2", true); // TODO Перед сборпкой обязательно указать новые пути
             player_two.setKeysControl(Keys.A, Keys.W, Keys.D, Keys.S, Keys.F);
             player_two.putBomb += ((int x, int y, int bombs_power) => {
                 Bomb bomb = new Bomb(curren_map, x, y, 100, bombs_power);

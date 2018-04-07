@@ -12,12 +12,15 @@ using AlphaMode = SharpDX.Direct2D1.AlphaMode;
 using PixelFormat = SharpDX.Direct2D1.PixelFormat;
 namespace Roughness {
     static class TexturesLoader {
+        
         public static Dictionary  <string, Bitmap> GameTextures = new Dictionary<string, Bitmap>();
+        // Анимированные текстуры и массиве идут в следующим порядке L1-L2-L3-L4-U1-U2...U4-R1...R4-D1..D4
+        // Счёт в Bitmap[] идёт с 1-16
+        public static Dictionary <string, Bitmap[] > AnimatedGameTexture = new Dictionary<string, Bitmap[]>();
         public static void LoadTextures(RenderTarget renderTarget) {
-            //@"..\..\GameRes\Image10.png"
             GameTextures.Add("Image1", LoadBitmapFromFile(renderTarget, @"..\..\GameRes\Image1.png"));
-            GameTextures.Add("Image2", LoadBitmapFromFile(renderTarget, @"..\..\GameRes\Image2.png"));
-            GameTextures.Add("Image3", LoadBitmapFromFile(renderTarget, @"..\..\GameRes\Image3.png"));
+            GameTextures.Add("player1", LoadBitmapFromFile(renderTarget, @"..\..\GameRes\Image2.png"));
+            GameTextures.Add("player2", LoadBitmapFromFile(renderTarget, @"..\..\GameRes\Image3.png"));
             GameTextures.Add("Image4", LoadBitmapFromFile(renderTarget, @"..\..\GameRes\Image4.png"));
             GameTextures.Add("Image5", LoadBitmapFromFile(renderTarget, @"..\..\GameRes\Image5.png"));
             GameTextures.Add("Image6", LoadBitmapFromFile(renderTarget, @"..\..\GameRes\Image6.png"));
@@ -30,6 +33,8 @@ namespace Roughness {
             GameTextures.Add("Image13", LoadBitmapFromFile(renderTarget, @"..\..\GameRes\Image13.png"));
             GameTextures.Add("Image15", LoadBitmapFromFile(renderTarget, @"..\..\GameRes\Image15.png"));
             GameTextures.Add("Image16", LoadBitmapFromFile(renderTarget, @"..\..\GameRes\Image16.png"));
+            LoadaAnimatedTextureFromFile("player1", renderTarget, @"..\..\GameRes\Player1\");
+            LoadaAnimatedTextureFromFile("player2", renderTarget, @"..\..\GameRes\Player2\");
 
         }
         private static Bitmap LoadBitmapFromFile(RenderTarget renderTarget, string file) {  // Собсвенная реализация загрузчика и конвертации 
@@ -63,6 +68,29 @@ namespace Roughness {
                     return new Bitmap(renderTarget, size, tempStream, stride, bitmapProperties);
                 }
             }
+        }
+
+        public static void LoadaAnimatedTextureFromFile(string name, RenderTarget renderTarget, string path) {
+            // TODO Потом заменить на обобшённый массив
+            Bitmap[] tmp = new Bitmap[20]; // Счёт в Bitmap[] идёт с 1 - 16
+            tmp[1] = (LoadBitmapFromFile(renderTarget, path + "L1.png"));
+            tmp[2] = (LoadBitmapFromFile(renderTarget, path + "L2.png"));
+            tmp[3] = (LoadBitmapFromFile(renderTarget, path + "L3.png"));
+            tmp[4] = (LoadBitmapFromFile(renderTarget, path + "L4.png"));
+            tmp[5] = (LoadBitmapFromFile(renderTarget, path + "U1.png"));
+            tmp[6] = (LoadBitmapFromFile(renderTarget, path + "U2.png"));
+            tmp[7] = (LoadBitmapFromFile(renderTarget, path + "U3.png"));
+            tmp[8] = (LoadBitmapFromFile(renderTarget, path + "U4.png"));
+            tmp[9] = (LoadBitmapFromFile(renderTarget, path + "R1.png"));
+            tmp[10] = (LoadBitmapFromFile(renderTarget, path + "R2.png"));
+            tmp[11] = (LoadBitmapFromFile(renderTarget, path + "R3.png"));
+            tmp[12] = (LoadBitmapFromFile(renderTarget, path + "R4.png"));
+            tmp[13] = (LoadBitmapFromFile(renderTarget, path + "D1.png"));
+            tmp[14] = (LoadBitmapFromFile(renderTarget, path + "D2.png"));
+            tmp[15] = (LoadBitmapFromFile(renderTarget, path + "D3.png"));
+            tmp[16] = (LoadBitmapFromFile(renderTarget, path + "D4.png"));
+            AnimatedGameTexture.Add(name, tmp);
+         
         }
     }
 }

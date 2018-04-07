@@ -17,14 +17,22 @@ namespace Roughness {
         public readonly int m_size_y;
         protected int m_center_x; // Центр, каждый раз при изменений х и у пересчитываеться
         protected int m_center_y;
-        protected Direction m_direction; // Текущее направление
+        private Direction direction;
+        protected Direction Direction {
+            get { return direction; }
+            set {
+                direction = value;
+                if (isAnimated == true) body.Direction = value;
+            }
+        } // Текущее направление
+        protected bool isAnimated;
         protected int m_id;
         protected GameMap curren_map; // Форма на каторой всё рисуетсья
 
         protected GameObject(GameMap cm, int id, int x, int y, int x_size, int y_size) : this(cm, id, x, y, x_size, y_size, null) { }
-        public GameObject(GameMap cm, int id, int x, int y, int x_size, int y_size, string textures_name) {
+        public GameObject(GameMap cm, int id, int x, int y, int x_size, int y_size, string textures_name, bool is_animated = false) {
             curren_map = cm;
-            body = new RenderingUnit(x, y, x_size, y_size, cm.renderTarget, textures_name);
+            body = new RenderingUnit(x, y, x_size, y_size, cm.renderTarget, textures_name, is_animated);
             this.x = x;
             this.y = y;
             m_size_x = x_size;
@@ -38,8 +46,8 @@ namespace Roughness {
             body.SizeX = x_size;
             body.SizeY = y_size;  
             m_id = id;
-
             cm.RenderingUnitsList.Add(body);
+            isAnimated = is_animated;
         }
         public int x {
             get {
@@ -73,20 +81,32 @@ namespace Roughness {
     }
 
     public class Player : GameObject, IMortal, IAbleToMove, ICanExplode {
+        private int m_currentAnimationStep;
+        private int m_currentAnimationCounter; // Счётчик который считает когда нужно сменить анимацию
+        private const int CHANGE_ANIMATED_PICTURE = 10; // Колличество циклов через которое смениться картинка анимации
+        private int CurrentAnimationStep {// Текущая картинка анимации [1-4]
+            get { return m_currentAnimationStep; }
+            set {
+                m_currentAnimationStep = value;
+                body.CurrentAnimationStep = value;
+            }
+        }
         private int move_speed { get; set; } // Скорость передвижения игрока
         private List<Keys> keys_control = new List<Keys>(); // Клавиши управления
         private Dictionary<Keys, bool> keys_now_presed = new Dictionary<Keys, bool>(); // Флаги нажатых в данный момент клавиш управления
         public event Action<int, int, int> putBomb;
-        private int bombs_power;
-        private int number_of_bombs;
+        private int bombs_power; // Дальность взрыва бомб
+        private int number_of_bombs; // Запас бомб
         private PlayersSettings players_setting;
         public Thread gamepad_thread; // Поток в котором будет запущен слушатель геймпада
 
-        public Player(GameMap cm, int id, int x, int y, int x_size, int y_size, string textures_name) : base(cm, id, x, y, x_size, y_size, textures_name) {
-            curren_map.game_timer.Tick += new EventHandler((object sender, EventArgs e) => { Move(m_direction); });
+        public Player(GameMap cm, int id, int x, int y, int x_size, int y_size, string textures_name,bool is_animated) : base(cm, id, x, y, x_size, y_size, textures_name, is_animated) {
+            curren_map.game_timer.Tick += new EventHandler((object sender, EventArgs e) => { Move(Direction); });
             move_speed = 3;
             bombs_power = 2;
             number_of_bombs = 2;
+            CurrentAnimationStep = 1;
+            m_currentAnimationCounter = 0;
             IsDead = false;
             players_setting = GameSettings.playersSettings[id];
             if (players_setting.deviceUsed == TypesGamesDevice.keyboard) {
@@ -122,19 +142,19 @@ namespace Roughness {
         void ActionByGamepadKeyDown(string command) {
             if (command == players_setting.keyDownСodes[0]) {
                 keys_now_presed[keys_control[0]] = true;
-                m_direction = Direction.left;
+                Direction = Direction.left;
             }
             if (command == players_setting.keyDownСodes[1]) {
                 keys_now_presed[keys_control[1]] = true;
-                m_direction = Direction.up;
+                Direction = Direction.up;
             }
             if (command == players_setting.keyDownСodes[2]) {
                 keys_now_presed[keys_control[2]] = true;
-                m_direction = Direction.right;
+                Direction = Direction.right;
             }
             if (command == players_setting.keyDownСodes[3]) {
                 keys_now_presed[keys_control[3]] = true;
-                m_direction = Direction.down;
+                Direction = Direction.down;
             }
             if (command == players_setting.keyDownСodes[4]) {
                 if ((!CheckBombsField()) && (number_of_bombs > 0)) {
@@ -156,23 +176,24 @@ namespace Roughness {
             if (command == players_setting.keyUpСodes[3]) {
                 keys_now_presed[keys_control[3]] = false;
             }
+            if (keys_now_presed[keys_control[0]] || keys_now_presed[keys_control[1]] || keys_now_presed[keys_control[2]] || keys_now_presed[keys_control[3]]) CurrentAnimationStep = 1; // Меняем анимаю на стойку прямо
         }
         void ActionByKeyboardKeyDown(object sender, KeyEventArgs e) {
             if (e.KeyCode == keys_control[0]) {
                 keys_now_presed[keys_control[0]] = true;
-                m_direction = Direction.left;
+                Direction = Direction.left;
             }
             if (e.KeyCode == keys_control[1]) {
                 keys_now_presed[keys_control[1]] = true;
-                m_direction = Direction.up;
+                Direction = Direction.up;
             }
             if (e.KeyCode == keys_control[2]) {
                 keys_now_presed[keys_control[2]] = true;
-                m_direction = Direction.right;
+                Direction = Direction.right;
             }
             if (e.KeyCode == keys_control[3]) {
                 keys_now_presed[keys_control[3]] = true;
-                m_direction = Direction.down;
+                Direction = Direction.down;
             }
             if (e.KeyCode == keys_control[4]) {
                 if ((!CheckBombsField()) && (number_of_bombs > 0)) {
@@ -196,7 +217,14 @@ namespace Roughness {
             }
         }
         public void Move(Direction direction) {
-
+            if (keys_now_presed[keys_control[0]] || keys_now_presed[keys_control[1]] || keys_now_presed[keys_control[2]] || keys_now_presed[keys_control[3]]) { // Меняем анимацию если надо
+                if (m_currentAnimationCounter == CHANGE_ANIMATED_PICTURE) {
+                m_currentAnimationCounter = 0;
+                if (CurrentAnimationStep != 4) CurrentAnimationStep++;
+                else CurrentAnimationStep = 2;
+            } else m_currentAnimationCounter++;
+        } else CurrentAnimationStep = 1;
+            // Передвижение
             if (keys_now_presed[keys_control[0]] == true) {
                 if (!((curren_map.CollisionsMap[x - 1][y + COLLISIONS_COEFFICIENT] == true) || // Проверка на коллизию 1 края
                     (curren_map.CollisionsMap[x - 1][y + m_size_y - COLLISIONS_COEFFICIENT] == true) || // Другого края
@@ -394,7 +422,7 @@ namespace Roughness {
 
         public Fire(GameMap cm, int cx, int cy, Direction direction, int power, int time, string textures_name) : base(cm, 0, cx, cy, 50, 50, textures_name) {
             m_timer = time;
-            m_direction = direction;
+            base.Direction = direction;
             //setFieldFire(true);
 
             const int DEPTH = 10; // Как глубоко от краёв пламени проверяеться кооллизия  

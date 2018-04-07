@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Collections.Generic;
 using SharpDX;
 using SharpDX.DXGI;
@@ -43,13 +44,16 @@ namespace Roughness {
             var bgcolor = new Color4(0.1f, 0.1f, 0.1f, 1.0f);
 
             //Assign render target and brush to our custom renderer
-            CreateAndRunGame();  
+            CreateAndRunGame();
+            Thread.Sleep(500);  
             RenderLoop.Run(mainForm, () => {
-                renderTarget.BeginDraw();
+                    renderTarget.BeginDraw();
                 renderTarget.Clear(bgcolor);
-                for (int i = RenderingUnitsList.Count - 1; i>-1; i--) { // for для того что бы список отрисовывался задом наперёд (Тогда главные объекты отрисовываютсья поверх второстепенных)
-                    if (RenderingUnitsList[i].isVisible) renderTarget.DrawBitmap(RenderingUnitsList[i].Texture, RenderingUnitsList[i].Body, 1, BitmapInterpolationMode.Linear);
-                };
+                for (int i = RenderingUnitsList.Count - 1; i > -1; i--) { // for для того что бы список отрисовывался задом наперёд (Тогда главные объекты отрисовываютсья поверх второстепенных)
+                    
+                    if (RenderingUnitsList[i].IsVisible) renderTarget.DrawBitmap(RenderingUnitsList[i].Texture, RenderingUnitsList[i].Body, 1, BitmapInterpolationMode.Linear);
+                }
+                
                 try {
                     renderTarget.EndDraw();
                 } catch {
@@ -85,7 +89,8 @@ namespace Roughness {
     public class RenderingUnit { //Являетсья единицой отрисовывающейся на экране
         private float x;
         private float y;
-        public bool isVisible { get; set; } // 1 - Visible, 0 - Hidden
+        public bool IsVisible { get; set; } // 1 - Visible, 0 - Hidden
+        public bool IsAnimated;
         public float X {
             get { return x; } 
             set {
@@ -102,20 +107,45 @@ namespace Roughness {
         }
         public float SizeX { get; set; }
         public float SizeY { get; set; }
+        private int currentAnimationStep;
+        public int CurrentAnimationStep { // от 1 до 4
+            set {
+                currentAnimationStep = value;
+                lock (this) {
+                    Texture = AnimatedTextures[(int)direction * 4 - (4 - value)];
+                }
+            }
+        }
+        Direction direction;
+        public Direction Direction {
+            set {
+                direction = value;
+                CurrentAnimationStep = currentAnimationStep; // Нужно для подмены текстуры направления
+            }
+            get { return direction; }
+        }
         public RectangleF Body;
-        public Bitmap Texture;
+
+        public Bitmap Texture {get;set;}
+        public Bitmap []AnimatedTextures; // Анимированные текстуры и массиве идут в следующим порядке L1-L2-L3-L4-U1-U2...U4-R1...R4-D1..D4
         public RenderingUnit() { }
-        public RenderingUnit(float x, float y, float size_x, float size_y, RenderTarget renderTarget, string textures_name) {
+        public RenderingUnit(float x, float y, float size_x, float size_y, RenderTarget renderTarget, string textures_name, bool isAnimated = false) {
             X = x;
             Y = y;
             SizeX = size_x;
             SizeY = size_y;
-            isVisible = true;
+            IsVisible = true;
+            IsAnimated = isAnimated;
             Body = new RectangleF(X, Y, SizeX, SizeY);
-            Texture = TexturesLoader.GameTextures[textures_name];
+            if (isAnimated == false) Texture = TexturesLoader.GameTextures[textures_name];
+            else {
+                AnimatedTextures = TexturesLoader.AnimatedGameTexture[textures_name];
+                direction = Direction.left;
+                CurrentAnimationStep = 1;
+            }
         }
         public void Hide() {
-            isVisible = false;
+            IsVisible = false;
         }
     }
 }
