@@ -8,12 +8,12 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace WindowsFormsApplication2 {
-    public partial class Form1 : Form {
-        public Form1() {
+namespace Roughness {
+    public partial class GameForm : Form {
+        public GameForm() {
             InitializeComponent();
             BackColor = (Color.Gray);
-            Game.star(this);
+            Game.start(this);
         }
     }
 }

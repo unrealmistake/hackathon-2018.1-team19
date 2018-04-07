@@ -1,5 +1,5 @@
-﻿namespace WindowsFormsApplication2 {
-    partial class Form1 {
+﻿namespace Roughness {
+    partial class GameForm {
         /// <summary>
         /// Required designer variable.
         /// </summary>
@@ -27,13 +27,13 @@
             this.game_timer = new System.Windows.Forms.Timer(this.components);
             this.SuspendLayout();
             // 
-            // Form1
+            // GameForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(650, 550);
             this.KeyPreview = true;
-            this.Name = "Form1";
+            this.Name = "GameForm";
             this.Text = "RoughnessPrototype v0.1";
             this.ResumeLayout(false);
         }
