@@ -88,7 +88,7 @@ namespace Roughness {
             curren_form.KeyUp += new KeyEventHandler(ActionByKeyUp);
             curren_form.game_timer.Tick += new EventHandler((object sender, EventArgs e) => { Move(m_direction); });
             move_speed = 3;
-
+            IsDead = false;
         }
         public void setKeysControl(Keys left, Keys up, Keys right, Keys down, Keys put) {
             keys_control.Clear();
@@ -170,21 +170,22 @@ namespace Roughness {
             }
         }
         public bool CheckTemperature() {
-            bool t1 = curren_form.game_map.FireMap[x][y];
-            bool t2 = curren_form.game_map.FireMap[x + m_size_x][y];
-            bool t3 = curren_form.game_map.FireMap[x][y + m_size_y];
-            bool t4 = curren_form.game_map.FireMap[x + m_size_x][y + m_size_y];
+            const int DEPTH = 10;
+            bool t1 = curren_form.game_map.FireMap[x + DEPTH][y + DEPTH];
+            bool t2 = curren_form.game_map.FireMap[x + m_size_x - DEPTH][y + DEPTH];
+            bool t3 = curren_form.game_map.FireMap[x + DEPTH][y + m_size_y - DEPTH];
+            bool t4 = curren_form.game_map.FireMap[x + m_size_x - DEPTH][y + m_size_y - DEPTH];
             return t1 || t2 || t3 || t4;
         }
         public bool IsDead { set; get; }
         public void Die(int die_parametr) {
-            MessageBox.Show($"Player {this.m_id} проиграл");
             IsDead = true;
+            MessageBox.Show($"Player {this.m_id} проиграл");
         }
 
     }
     public class Wall : GameObject, IIsBarrier {
-        public Wall(GameForm cf, string id, int x, int y, int x_size, int y_size) : base(cf, id, x, y, x_size, y_size) {
+        public Wall(GameForm cf, string id, int x, int y, int x_size, int y_size, string image_path) : base(cf, id, x, y, x_size, y_size, image_path) {
             setCollision(true);
         }
 
@@ -194,6 +195,24 @@ namespace Roughness {
             for (int ix = x; ix < end_x; ix++)
                 for (int iy = y; iy < end_y; iy++)
                     curren_form.game_map.CollisionsMap[ix][iy] = collision;
+        }
+    }
+
+    public class BrickWall : Wall, IIsBarrier, ICanExplode {
+        public BrickWall(GameForm cf, string id, int x, int y, int x_size, int y_size, string image_path) : base(cf, id, x, y, x_size, y_size, image_path) {
+
+        }
+        public bool CheckTemperature() {
+            const int DEPTH = 10;
+            bool t1 = curren_form.game_map.FireMap[x + DEPTH][y + DEPTH];
+            bool t2 = curren_form.game_map.FireMap[x + m_size_x - DEPTH][y + DEPTH];
+            bool t3 = curren_form.game_map.FireMap[x + DEPTH][y + m_size_y - DEPTH];
+            bool t4 = curren_form.game_map.FireMap[x + m_size_x - DEPTH][y + m_size_y - DEPTH];
+            return t1 || t2 || t3 || t4;
+        }
+        public void Destroy() {
+            setCollision(false);
+            this.body.Hide();
         }
     }
 
