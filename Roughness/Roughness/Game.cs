@@ -7,9 +7,7 @@ using System.Windows.Forms;
 using SharpDX.Direct2D1;
 using SharpDX.Windows;
 using Timer = System.Windows.Forms.Timer;
-
-namespace Game {
-
+namespace Roughness {
     public class GameMap {
         public int X { get; set; }
         public int Y { get; set; }
@@ -57,15 +55,15 @@ namespace Game {
 
             curren_map.game_timer.Tick += new EventHandler((object sender, EventArgs e) => { GameTick(); });
 
-            player_one = new Player(curren_map, "P1", 1, 1, 50, 50, @"..\..\GameRes\Image1.png"); // TODO Перед сборпкой обязательно указать новые пути
+            player_one = new Player(curren_map, 1, 1, 1, 50, 50, @"..\..\GameRes\Image12.png"); // TODO Перед сборпкой обязательно указать новые пути
             player_one.setKeysControl(Keys.Left, Keys.Up, Keys.Right, Keys.Down, Keys.Space);
             player_one.putBomb += ((int x, int y, int bombs_power) => {
-                Bomb bomb = new Bomb(curren_map, x, y, 100, bombs_power);
+                Bomb bomb = new Bomb(curren_map, x, y, 150, bombs_power);
                 bomb.EExplosion += () => { player_one.ReturnBomb(); };
                 curren_map.bombs.Add(bomb);
             });
 
-            player_two = new Player(curren_map, "P2", 600, 500, 50, 50, @"..\..\GameRes\Image1.png"); // TODO Перед сборпкой обязательно указать новые пути
+            player_two = new Player(curren_map, 2, 600, 500, 50, 50, @"..\..\GameRes\Image13.png"); // TODO Перед сборпкой обязательно указать новые пути
             player_two.setKeysControl(Keys.A, Keys.W, Keys.D, Keys.S, Keys.F);
             player_two.putBomb += ((int x, int y, int bombs_power) => {
                 Bomb bomb = new Bomb(curren_map, x, y, 100, bombs_power);
@@ -74,7 +72,7 @@ namespace Game {
             });
 
             //curren_form.game_map.brick_walls.Add(new BrickWall(curren_form, "bw", 150, 100, 50, 50, @"..\..\GameRes\Image7.png"));
-            for (int x = 50; x <= 600; x += 100) for (int y = 50; y <= 500; y += 100) curren_map.walls.Add(new Wall(curren_map, "iw", x, y, 50, 50, @"..\..\GameRes\Image8.png"));
+            for (int x = 50; x <= 600; x += 100) for (int y = 50; y <= 500; y += 100) curren_map.walls.Add(new Wall(curren_map, 0, x, y, 50, 50, @"..\..\GameRes\Image8.png"));
 
             Random rd = new Random();
             for (int x = 0; x <= 600; x += 50) for (int y = 0; y <= 500; y += 50) {
@@ -86,7 +84,7 @@ namespace Game {
                     if ((x == 600) && (y == 450)) continue;
                     if (curren_map.CollisionsMap[x][y] == true) continue; // Там где уже есть стены
 
-                    if (rd.Next(4) != 3) curren_map.brick_walls.Add(new BrickWall(curren_map, "bw", x, y, 50, 50, @"..\..\GameRes\Image7.png"));
+                    if (rd.Next(4) != 3) curren_map.brick_walls.Add(new BrickWall(curren_map, 0, x, y, 50, 50, @"..\..\GameRes\Image7.png"));
                 }
 
             cm.game_timer.Interval = 10; // Настройка таймера

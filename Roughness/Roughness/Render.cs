@@ -18,13 +18,11 @@ using RectangleF = SharpDX.RectangleF;
 using Color = SharpDX.Color;
 using FontStyle = SharpDX.DirectWrite.FontStyle;
 
-
-namespace Game {
+namespace Roughness {
     class GameRender {
         private static D2DFactory d2dFactory;
         private static DWriteFactory dwFactory;
         private static RenderForm mainForm;
-
         private static WindowRenderTarget renderTarget;
         //Various brushes for our example
         private static SolidColorBrush backgroundBrush;
@@ -45,20 +43,11 @@ namespace Game {
             CreateResources();
             var bgcolor = new Color4(0.1f, 0.1f, 0.1f, 1.0f);
 
-            //This is the offset where we start our text layout
-            Vector2 offset = new Vector2(202.0f, 250.0f);
             //Assign render target and brush to our custom renderer
-            RectangleF tmp = new RectangleF(10, 10, 10, 10);
-
-            RectangleF tmp_bitmap_rect = new RectangleF(50, 50, 50, 50);
-            CreateAndRunGame();
+            CreateAndRunGame();  
             RenderLoop.Run(mainForm, () => {
                 renderTarget.BeginDraw();
                 renderTarget.Clear(bgcolor);
-
-                if (tmp.X > 400) tmp.X = 4;
-                tmp.X++;
-                renderTarget.FillRectangle(tmp, redBrush);
                 for (int i = RenderingUnitsList.Count - 1; i>-1; i--) { // for для того что бы список отрисовывался задом наперёд (Тогда главные объекты отрисовываютсья поверх второстепенных)
                     if (RenderingUnitsList[i].isVisible) renderTarget.DrawBitmap(RenderingUnitsList[i].Texture, RenderingUnitsList[i].Body, 1, BitmapInterpolationMode.Linear);
                 };

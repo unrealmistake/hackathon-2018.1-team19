@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 using System.Windows.Forms;
 
-
-namespace Game {
-
+namespace Roughness {
     public abstract class GameObject {
         protected const int COLLISIONS_COEFFICIENT = 3;
         public RenderingUnit body; // Тело отрисовки
@@ -18,16 +17,12 @@ namespace Game {
         protected int m_center_x; // Центр, каждый раз при изменений х и у пересчитываеться
         protected int m_center_y;
         protected Direction m_direction; // Текущее направление
-        protected string m_id;
+        protected int m_id;
         protected GameMap curren_map; // Форма на каторой всё рисуетсья
-        //public Point m_location;  // Обьект необходимый для отрисовки текущей позиии на форме
 
-
-        protected GameObject(GameMap cm, string id, int x, int y, int x_size, int y_size) : this(cm, id, x, y, x_size, y_size, null) { }
-        public GameObject(GameMap cm, string id, int x, int y, int x_size, int y_size, string image_path) {
-            //obj_random = new Random();
+        protected GameObject(GameMap cm, int id, int x, int y, int x_size, int y_size) : this(cm, id, x, y, x_size, y_size, null) { }
+        public GameObject(GameMap cm, int id, int x, int y, int x_size, int y_size, string image_path) {
             curren_map = cm;
-            //m_location = new System.Drawing.Point(x, y);
             body = new RenderingUnit(x, y, x_size, y_size, cm.renderTarget, image_path);
             this.x = x;
             this.y = y;
@@ -83,15 +78,31 @@ namespace Game {
         public event Action<int, int, int> putBomb;
         private int bombs_power;
         private int number_of_bombs;
+        private PlayersSettings players_setting;
+        public Thread gamepad_thread;
 
-        public Player(GameMap cm, string id, int x, int y, int x_size, int y_size, string image_path) : base(cm, id, x, y, x_size, y_size, image_path) {
-            curren_map.mainForm.KeyDown += new KeyEventHandler(ActionByKeyDown);
-            curren_map.mainForm.KeyUp += new KeyEventHandler(ActionByKeyUp);
+        public Player(GameMap cm, int id, int x, int y, int x_size, int y_size, string image_path) : base(cm, id, x, y, x_size, y_size, image_path) {
             curren_map.game_timer.Tick += new EventHandler((object sender, EventArgs e) => { Move(m_direction); });
             move_speed = 3;
             bombs_power = 2;
             number_of_bombs = 2;
             IsDead = false;
+            players_setting = GameSettings.playersSettings[id];
+            if (players_setting.deviceUsed == TypesGamesDevice.keyboard) {
+                curren_map.mainForm.KeyDown += new KeyEventHandler(ActionByKeyboardKeyDown);
+                curren_map.mainForm.KeyUp += new KeyEventHandler(ActionByKeyboardKeyUp);
+            }
+            if (players_setting.deviceUsed == TypesGamesDevice.joystick) {
+
+                //curren_map.mainForm.KeyDown += new KeyEventHandler(ActionByKeyDown);
+                //curren_map.mainForm.KeyUp += new KeyEventHandler(ActionByKeyUp);
+                players_setting.gameDevice.KeyDown += ActionByGamepadKeyDown;
+                players_setting.gameDevice.KeyUp += ActionByGamepadKeyUp;
+                gamepad_thread = new Thread(new ThreadStart(players_setting.gameDevice.StartJoystickListener));
+                gamepad_thread.IsBackground = true;
+                gamepad_thread.Start();
+            }
+
         }
         public void setKeysControl(Keys left, Keys up, Keys right, Keys down, Keys put) {
             keys_control.Clear();
@@ -107,7 +118,45 @@ namespace Game {
             keys_control.Add(put);
             keys_now_presed.Add(put, false);
         }
-        void ActionByKeyDown(object sender, KeyEventArgs e) {
+        void ActionByGamepadKeyDown(string command) {
+            if (command == players_setting.keyDownСodes[0]) {
+                keys_now_presed[keys_control[0]] = true;
+                m_direction = Direction.left;
+            }
+            if (command == players_setting.keyDownСodes[1]) {
+                keys_now_presed[keys_control[1]] = true;
+                m_direction = Direction.up;
+            }
+            if (command == players_setting.keyDownСodes[2]) {
+                keys_now_presed[keys_control[2]] = true;
+                m_direction = Direction.right;
+            }
+            if (command == players_setting.keyDownСodes[3]) {
+                keys_now_presed[keys_control[3]] = true;
+                m_direction = Direction.down;
+            }
+            if (command == players_setting.keyDownСodes[4]) {
+                if ((!CheckBombsField()) && (number_of_bombs > 0)) {
+                    number_of_bombs--;
+                    putBomb(x, y, bombs_power);
+                }
+            }
+        }
+        void ActionByGamepadKeyUp(string command) {
+            if (command == players_setting.keyUpСodes[0]) {
+                keys_now_presed[keys_control[0]] = false;
+            }
+            if (command == players_setting.keyUpСodes[1]) {
+                keys_now_presed[keys_control[1]] = false;
+            }
+            if (command == players_setting.keyUpСodes[2]) {
+                keys_now_presed[keys_control[2]] = false;
+            }
+            if (command == players_setting.keyUpСodes[3]) {
+                keys_now_presed[keys_control[3]] = false;
+            }
+        }
+        void ActionByKeyboardKeyDown(object sender, KeyEventArgs e) {
             if (e.KeyCode == keys_control[0]) {
                 keys_now_presed[keys_control[0]] = true;
                 m_direction = Direction.left;
@@ -129,11 +178,9 @@ namespace Game {
                     number_of_bombs--;
                     putBomb(x, y, bombs_power);
                 }
-
             }
-
         }
-        void ActionByKeyUp(object sender, KeyEventArgs e) {
+        void ActionByKeyboardKeyUp(object sender, KeyEventArgs e) {
             if (e.KeyCode == keys_control[0]) {
                 keys_now_presed[keys_control[0]] = false;
             }
@@ -244,7 +291,7 @@ namespace Game {
 
     }
     public class Wall : GameObject, IIsBarrier {
-        public Wall(GameMap cm, string id, int x, int y, int x_size, int y_size, string image_path) : base(cm, id, x, y, x_size, y_size, image_path) {
+        public Wall(GameMap cm, int id, int x, int y, int x_size, int y_size, string image_path) : base(cm, id, x, y, x_size, y_size, image_path) {
             setCollision(true);
         }
 
@@ -260,7 +307,7 @@ namespace Game {
     public class BrickWall : Wall, IIsBarrier, ICanExplode {
         Bonuses m_bonus;
         protected Random obj_random;
-        public BrickWall(GameMap cm, string id, int x, int y, int x_size, int y_size, string image_path) : base(cm, id, x, y, x_size, y_size, image_path) {
+        public BrickWall(GameMap cm, int id, int x, int y, int x_size, int y_size, string image_path) : base(cm, id, x, y, x_size, y_size, image_path) {
             const int HOW_OFTEN_DROPS = 4; //Чем меньше тем меньше выпадает
             obj_random = new Random(x + y);
             m_bonus = Bonuses.nope;
@@ -289,7 +336,7 @@ namespace Game {
         int m_explosion_radius; // Радиус взрыва
         public delegate void emptyFunction();
         public event emptyFunction EExplosion;
-        public Bomb(GameMap cm, int x, int y, int time_before_explosion, int explosion_radius) : base(cm, "b", x + 5, y + 5, 40, 40, @"..\..\GameRes\Image9.png") {
+        public Bomb(GameMap cm, int x, int y, int time_before_explosion, int explosion_radius) : base(cm, 0, x + 5, y + 5, 40, 40, @"..\..\GameRes\Image9.png") {
             setCollision(true);
             setBombsField(true);
             m_explosion_radius = explosion_radius;
@@ -338,7 +385,7 @@ namespace Game {
     public class Fire : GameObject { // Если direction nope то объект порождает 4 новых c power-1 во всех направлениях, иначе только в своём с power-1 
         int m_timer;        // Счётчик времени
 
-        public Fire(GameMap cm, int cx, int cy, Direction direction, int power, int time, string image_path) : base(cm, "f", cx, cy, 50, 50, image_path) {
+        public Fire(GameMap cm, int cx, int cy, Direction direction, int power, int time, string image_path) : base(cm, 0, cx, cy, 50, 50, image_path) {
             m_timer = time;
             m_direction = direction;
             //setFieldFire(true);
@@ -396,7 +443,7 @@ namespace Game {
 
     public class BountyItem : GameObject {
         Bonuses m_bonus;
-        public BountyItem(GameMap cm, int start_x, int start_y, Bonuses bonus, string image_path) : base(cm, "bi", start_x, start_y, 50, 50, image_path) {
+        public BountyItem(GameMap cm, int start_x, int start_y, Bonuses bonus, string image_path) : base(cm, 0, start_x, start_y, 50, 50, image_path) {
             m_bonus = bonus;
             setItemsField(true);
         }
